@@ -1,5 +1,9 @@
 # Bug Report
 
+> **Note on `test.failing`:**
+> Tests marked `test.failing` assert the CORRECT behavior and currently fail on purpose.
+> They document known unfixed bugs. When a bug is fixed, convert its `test.failing` to a normal test.
+
 Bugs discovered through automated testing of the Task Manager API.
 Each bug is backed by at least one `test.failing` test in the test suite.
 

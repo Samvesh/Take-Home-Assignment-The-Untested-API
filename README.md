@@ -34,6 +34,10 @@ npm test           # run test suite
 npm run coverage   # run with coverage report
 ```
 
+> **Note on `test.failing`:**
+> Tests marked `test.failing` assert the CORRECT behavior and currently fail on purpose.
+> They document known unfixed bugs. When a bug is fixed, convert its `test.failing` to a normal test.
+
 ---
 
 ## Project Structure
