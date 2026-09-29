@@ -9,7 +9,10 @@ const findById = (id) => tasks.find((t) => t.id === id);
 const getByStatus = (status) => tasks.filter((t) => t.status.includes(status));
 
 const getPaginated = (page, limit) => {
-  const offset = page * limit;
+  // FIX: Changed from `page * limit` to `(page - 1) * limit`.
+  // Pages are 1-indexed, so page 1 should start at offset 0, page 2 at offset `limit`, etc.
+  // The old formula `page * limit` made page 1 start at offset `limit`, skipping the first page.
+  const offset = (page - 1) * limit;
   return tasks.slice(offset, offset + limit);
 };
 

@@ -184,37 +184,35 @@ describe('taskService.getPaginated', () => {
   });
 
   /**
-   * BUG: Pagination offset is calculated as `page * limit` instead of
-   * `(page - 1) * limit`. This means page 1 starts at offset=limit,
-   * skipping the first page of results entirely.
-   *
-   * Expected: page=1, limit=5 → returns tasks 1-5 (offset 0).
-   * Actual: page=1, limit=5 → returns tasks 6-10 (offset 5).
+   * FIXED: Pagination offset is now correctly `(page - 1) * limit`.
+   * Page 1 returns the first page of results.
    */
-  test.failing('page 1 returns the first page of results (BUG: off-by-one)', () => {
+  test('page 1 returns the first page of results (FIXED: was off-by-one)', () => {
     const result = taskService.getPaginated(1, 5);
     expect(result).toHaveLength(5);
     // Page 1 should return the very first tasks
     expect(result[0].title).toBe('Task 1');
   });
 
+  test('page 2 returns the second page of results', () => {
+    const result = taskService.getPaginated(2, 5);
+    expect(result).toHaveLength(5);
+    expect(result[0].title).toBe('Task 6');
+  });
+
   test('returns limited number of results', () => {
-    // With the bug, page=0 accidentally returns the first page
-    const result = taskService.getPaginated(0, 5);
+    const result = taskService.getPaginated(1, 5);
     expect(result).toHaveLength(5);
   });
 
   test('returns empty array when page is beyond available data', () => {
-    // Page 100 is way beyond 15 tasks regardless of the offset bug
     const result = taskService.getPaginated(100, 5);
     expect(result).toEqual([]);
   });
 
   test('returns remaining items when last page is partial', () => {
-    // With 15 tasks and limit=10, the "second" page should have 5 items.
-    // Due to the offset bug (page*limit), page=1 returns offset 10 → 5 items.
-    // This "works" by accident with the buggy formula.
-    const result = taskService.getPaginated(1, 10);
+    // With 15 tasks and limit=10, page 2 should have 5 items
+    const result = taskService.getPaginated(2, 10);
     expect(result).toHaveLength(5);
   });
 

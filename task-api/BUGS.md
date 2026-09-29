@@ -5,7 +5,7 @@ Each bug is backed by at least one `test.failing` test in the test suite.
 
 ---
 
-## Bug 1: Pagination Off-by-One Error
+## Bug 1: Pagination Off-by-One Error — ✅ FIXED
 
 - **Title:** Pagination skips the first page of results
 - **Location:** `src/services/taskService.js` → `getPaginated()` → line 12
@@ -21,6 +21,7 @@ Each bug is backed by at least one `test.failing` test in the test suite.
   ```
 - **Suggested fix:** Change line 12 to `const offset = (page - 1) * limit;`
 - **Severity:** 🔴 **High** — Every paginated API consumer gets the wrong data. Page 1 returns nothing for small datasets.
+- **Status:** ✅ **FIXED** — Changed `page * limit` to `(page - 1) * limit` in `taskService.js` line 12. Updated pagination tests (both unit and integration) to verify correct behavior. See commit `fix: pagination off-by-one`.
 
 ---
 

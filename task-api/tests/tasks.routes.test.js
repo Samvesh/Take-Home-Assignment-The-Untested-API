@@ -192,13 +192,10 @@ describe('GET /tasks', () => {
   // --- Pagination ---
 
   /**
-   * BUG: Pagination offset is `page * limit` instead of `(page - 1) * limit`.
-   * Page 1 skips the first `limit` results.
-   *
-   * Expected: page=1&limit=5 returns the first 5 tasks.
-   * Actual: page=1&limit=5 returns tasks 6-10.
+   * FIXED: Pagination offset is now `(page - 1) * limit`.
+   * Page 1 correctly returns the first page of results.
    */
-  test.failing('pagination page 1 returns the first page (BUG: off-by-one)', async () => {
+  test('pagination page 1 returns the first page (FIXED: was off-by-one)', async () => {
     for (let i = 1; i <= 10; i++) {
       await createTaskViaAPI({ title: `Task ${i}` });
     }
@@ -210,16 +207,15 @@ describe('GET /tasks', () => {
     expect(res.body[0].title).toBe('Task 1');
   });
 
-  test('pagination with page=0 returns results (exploits the off-by-one)', async () => {
-    // Documenting that page=0 accidentally returns the first page due to the bug
+  test('pagination page 2 returns the second page', async () => {
     for (let i = 1; i <= 10; i++) {
       await createTaskViaAPI({ title: `Task ${i}` });
     }
 
-    const res = await request(app).get('/tasks?page=0&limit=5');
+    const res = await request(app).get('/tasks?page=2&limit=5');
     expect(res.status).toBe(200);
-    // page=0 → offset=0 → returns first 5 (this "works" due to the bug)
     expect(res.body).toHaveLength(5);
+    expect(res.body[0].title).toBe('Task 6');
   });
 
   test('pagination with non-numeric page defaults to 1', async () => {
@@ -229,21 +225,19 @@ describe('GET /tasks', () => {
 
     const res = await request(app).get('/tasks?page=abc&limit=5');
     expect(res.status).toBe(200);
-    // parseInt('abc') → NaN → fallback to 1
-    // But due to the pagination bug, page=1 skips first 5 items
-    // So with only 5 tasks, it returns empty
-    // This test documents the actual behavior
-    expect(Array.isArray(res.body)).toBe(true);
+    // parseInt('abc') → NaN → fallback to 1 → returns first page
+    expect(res.body).toHaveLength(5);
+    expect(res.body[0].title).toBe('Task 1');
   });
 
-  test('pagination with limit=0 returns empty array', async () => {
+  test('pagination with limit=0 falls back to default limit of 10', async () => {
     await createTaskViaAPI({ title: 'Task' });
 
     const res = await request(app).get('/tasks?page=1&limit=0');
     expect(res.status).toBe(200);
     // limit=0 → parseInt returns 0, which is falsy → falls back to 10
-    // With only 1 task and page=1 (offset=10 due to bug), returns empty
-    expect(Array.isArray(res.body)).toBe(true);
+    // page=1 → offset=0 → returns 1 task (only 1 exists, limit 10)
+    expect(res.body).toHaveLength(1);
   });
 
   test('pagination returns empty when page is beyond available data', async () => {
