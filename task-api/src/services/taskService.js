@@ -39,6 +39,7 @@ const create = ({ title, description = '', status = 'todo', priority = 'medium',
     status,
     priority,
     dueDate,
+    assignee: null, // New field: defaults to null until explicitly assigned via PATCH /assign
     completedAt: null,
     createdAt: new Date().toISOString(),
   };
@@ -79,6 +80,28 @@ const completeTask = (id) => {
   return updated;
 };
 
+/**
+ * Assigns a task to a user.
+ *
+ * Design decision: reassignment is allowed. If the task already has an
+ * assignee, it is silently replaced. This is simpler and more flexible
+ * than returning 409 Conflict — reassignment is a normal workflow action,
+ * not an error. The caller can always check the current assignee first.
+ *
+ * @param {string} id - The task id
+ * @param {string} assignee - The trimmed assignee name
+ * @returns {object|null} The updated task, or null if not found
+ */
+const assignTask = (id, assignee) => {
+  const index = tasks.findIndex((t) => t.id === id);
+  if (index === -1) return null;
+
+  // Only update the assignee field — do not touch any other properties
+  const updated = { ...tasks[index], assignee };
+  tasks[index] = updated;
+  return updated;
+};
+
 const _reset = () => {
   tasks = [];
 };
@@ -93,5 +116,6 @@ module.exports = {
   update,
   remove,
   completeTask,
+  assignTask,
   _reset,
 };
