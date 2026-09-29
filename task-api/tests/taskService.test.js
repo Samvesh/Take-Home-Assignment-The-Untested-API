@@ -292,6 +292,36 @@ describe('taskService.getStats', () => {
     const stats = taskService.getStats();
     expect(stats.overdue).toBe(0);
   });
+
+  test('in_progress tasks with past dueDate are counted as overdue', () => {
+    createTestTask({
+      status: 'in_progress',
+      dueDate: '2000-01-01T00:00:00.000Z',
+    });
+
+    const stats = taskService.getStats();
+    expect(stats.in_progress).toBe(1);
+    expect(stats.overdue).toBe(1);
+  });
+
+  test('future dueDate tasks are not overdue', () => {
+    const futureDate = new Date(Date.now() + 86400000).toISOString();
+    createTestTask({ status: 'todo', dueDate: futureDate });
+    createTestTask({ status: 'in_progress', dueDate: futureDate });
+
+    const stats = taskService.getStats();
+    expect(stats.overdue).toBe(0);
+  });
+
+  test('correctly evaluates overdue status across timezone offsets', () => {
+    // Past date with timezone offset (+05:30)
+    createTestTask({ status: 'todo', dueDate: '2000-06-15T12:00:00+05:30' });
+    // Future date with timezone offset (-08:00)
+    createTestTask({ status: 'todo', dueDate: '2099-06-15T12:00:00-08:00' });
+
+    const stats = taskService.getStats();
+    expect(stats.overdue).toBe(1);
+  });
 });
 
 // ===========================================================================
