@@ -11,11 +11,14 @@
 
 ## 2. What surprised me in the codebase
 
-- **The `priority: 'medium'` in `completeTask()`** was the most surprising bug. It's clearly a copy-paste from `create()`'s defaults, and it silently corrupts data. I only caught it because I wrote a test that checked every field after completion.
-- **The `.includes()` bug in `getByStatus()`** — using `String.prototype.includes()` instead of `===` is an easy mistake that passes a quick manual test (typing `?status=todo` works fine), but breaks with any substring. It's the kind of bug that only shows up through systematic edge-case testing.
-- **The pagination off-by-one** — `page * limit` instead of `(page - 1) * limit`. This must have never been tested with real data, because page 1 literally returns nothing for small datasets.
-- The codebase already had a `_reset()` helper exposed for testing, which was thoughtful.
+-## What surprised me
 
+- The bugs were mostly small copy-paste and typo-level mistakes, not complicated logic. The pagination one is a good example: `page * limit` instead of `(page - 1) * limit`, so page 1 skips the first chunk of data. One line, but it breaks every paginated request.
+- The status filter uses `.includes()`, so `?status=do` matches both `todo` and `done`. It looks fine on the happy path and only shows up when you test a weird input.
+- `completeTask` quietly resets the priority to `medium`. I think it was copied from `create()` and nobody noticed, because completing a task "worked" and the response looked normal.
+- The README and the code disagreed on the status values (`pending / in-progress / completed` vs `todo / in_progress / done`). I went with what the code actually uses and fixed the README, since changing the code would touch every endpoint.
+- Malformed JSON returns a 500 instead of a 400, because the global error handler ignores the error's own status. I didn't expect the error handling to be a problem area.
+- I used `test.failing` for the bugs I didn't fix, so the suite stays green but the bugs are still on record. It felt a bit odd at first, but it means each bug has a test ready for whoever fixes it.
 ## 3. Questions I'd ask before shipping to production
 
 1. **Persistence**: The in-memory store loses all data on restart. Is there a plan for a database (PostgreSQL, MongoDB)? This affects the entire architecture.
