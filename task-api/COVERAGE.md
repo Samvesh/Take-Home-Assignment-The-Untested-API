@@ -32,8 +32,8 @@ All files        |   96.95 |    93.47 |   93.54 |   96.66 |
 
 ## Test Count
 
-- **97 tests total** (all passing)
-  - 37 unit tests (`taskService.test.js`)
+- **100 tests total** (all passing)
+  - 40 unit tests (`taskService.test.js`)
   - 43 integration tests (`tasks.routes.test.js`)
   - 17 assign feature tests (`assign.test.js`)
 - **5 tests use `test.failing`** to document real unfixed bugs (they assert correct behavior that the buggy code doesn't satisfy)
