@@ -4,6 +4,13 @@ const taskRoutes = require('./routes/tasks');
 const app = express();
 
 app.use(express.json());
+
+// Health check endpoint for deployment platforms (Render, Railway, etc.)
+// Returns 200 with a simple status object so load balancers can verify the service is up.
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+});
+
 app.use('/tasks', taskRoutes);
 
 app.use((err, req, res, next) => {

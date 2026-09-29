@@ -65,7 +65,7 @@ ASSIGNMENT.md               # Full brief — read this first
 | `DELETE` | `/tasks/:id`              | Delete a task (returns 204)              |
 | `PATCH`  | `/tasks/:id/complete`     | Mark a task as complete                  |
 | `GET`    | `/tasks/stats`            | Counts by status + overdue count         |
-| `PATCH`  | `/tasks/:id/assign`       | **Assign a task to a user** _(to implement)_ |
+| `PATCH`  | `/tasks/:id/assign`       | Assign a task to a user                  |
 
 ### Task shape
 
@@ -74,9 +74,10 @@ ASSIGNMENT.md               # Full brief — read this first
   "id": "uuid",
   "title": "string",
   "description": "string",
-  "status": "pending | in-progress | completed",
+  "status": "todo | in_progress | done",
   "priority": "low | medium | high",
   "dueDate": "ISO 8601 or null",
+  "assignee": "string or null",
   "completedAt": "ISO 8601 or null",
   "createdAt": "ISO 8601"
 }
@@ -93,13 +94,21 @@ curl -X POST http://localhost:3000/tasks \
 
 **List tasks with filter**
 ```bash
-curl "http://localhost:3000/tasks?status=pending&page=1&limit=10"
+curl "http://localhost:3000/tasks?status=todo&page=1&limit=10"
 ```
 
 **Mark complete**
 ```bash
 curl -X PATCH http://localhost:3000/tasks/<id>/complete
 ```
+
+**Assign a task**
+```bash
+curl -X PATCH http://localhost:3000/tasks/<id>/assign \
+  -H "Content-Type: application/json" \
+  -d '{"assignee": "Alice"}'
+```
+
 
 ---
 
@@ -111,3 +120,67 @@ See [ASSIGNMENT.md](./ASSIGNMENT.md) for full submission requirements. At minimu
 - **Bug report** — what you found, where in the code, and why it's a bug (not just symptoms)
 - **At least one fix** — with a note on your approach
 - **`PATCH /tasks/:id/assign` implementation** — plus a short explanation of any design decisions (validation, edge cases, etc.)
+
+---
+
+## How to Run
+
+```bash
+cd task-api
+npm install
+npm start        # runs on http://localhost:3000 (or PORT env variable)
+npm test         # run test suite
+npm run coverage # run with coverage report
+```
+
+## Deployment
+
+The API is ready for deployment on platforms like [Render](https://render.com) or [Railway](https://railway.app).
+
+- **Start command:** `npm start` (binds to `process.env.PORT || 3000`)
+- **Health check:** `GET /health` returns `{ "status": "ok", "timestamp": "..." }`
+- **No database required** — uses in-memory store (data resets on restart)
+- **No secrets or environment variables** are required
+
+### Deploy to Render
+
+1. Push this repo to GitHub
+2. Go to [render.com](https://render.com) → New → Web Service
+3. Connect your GitHub repo
+4. Settings:
+   - **Root Directory:** `task-api`
+   - **Build Command:** `npm install`
+   - **Start Command:** `npm start`
+   - **Health Check Path:** `/health`
+5. Deploy
+
+### Smoke-test curl commands
+
+Replace `<BASE_URL>` with your live URL (e.g., `https://your-app.onrender.com`).
+
+```bash
+# Health check
+curl <BASE_URL>/health
+
+# Create a task
+curl -X POST <BASE_URL>/tasks \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Deploy test", "priority": "high"}'
+
+# List tasks
+curl <BASE_URL>/tasks
+
+# Get stats
+curl <BASE_URL>/tasks/stats
+
+# Assign a task (replace <id> with the id from POST)
+curl -X PATCH <BASE_URL>/tasks/<id>/assign \
+  -H "Content-Type: application/json" \
+  -d '{"assignee": "Alice"}'
+
+# Mark complete
+curl -X PATCH <BASE_URL>/tasks/<id>/complete
+
+# Delete
+curl -X DELETE <BASE_URL>/tasks/<id>
+```
