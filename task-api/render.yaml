@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: task-api
+    runtime: node
+    plan: free
+    rootDir: task-api
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
